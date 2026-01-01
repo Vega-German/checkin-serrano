@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Check-in Serrano 157</title>
+    
+    <!-- Librerías Externas -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .fade-in { animation: fadeIn 0.5s ease-out forwards; }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .accordion-content {
+            transition: max-height 0.3s ease-in-out, opacity 0.3s ease-in-out;
+            max-height: 0;
+            opacity: 0;
+            overflow: hidden;
+        }
+        .accordion-content.active {
+            max-height: 500px;
+            opacity: 1;
+        }
+        /* Clase para deshabilitar interacciones mientras carga */
+        .loading-overlay {
+            pointer-events: none;
+            opacity: 0.7;
+        }
+    </style>
+</head>
+<body class="bg-gray-50 text-gray-800 min-h-screen flex flex-col items-center justify-center p-4">
+
+    <!-- Contenedor Principal -->
+    <div class="w-full max-w-md bg-white rounded-3xl shadow-xl overflow-hidden border border-gray-100 relative">
+        <div class="h-2 bg-gradient-to-r from-rose-500 to-pink-600 w-full"></div>
+
+        <!-- PANTALLA 1: FORMULARIO -->
+        <div id="screen-form" class="p-6 sm:p-8 fade-in">
+            <div class="text-center mb-6">
+                <h1 class="text-2xl font-bold text-gray-900">Registro de Huéspedes</h1>
+                <p class="text-sm text-gray-500 mt-1">Serrano 157, Barrio París-Londres</p>
+            </div>
+
+            <form id="checkinForm" class="space-y-5">
+                <!-- SECCIÓN: HUÉSPED PRINCIPAL -->
+                <div class="bg-gray-50 p-4 rounded-xl border border-gray-100">
+                    <h3 class="text-xs font-bold text-gray-400 uppercase tracking-widest mb-3 flex items-center">
+                        Huésped Principal
+                    </h3>
+                    <div class="space-y-3">
+                        <div>
+                            <label class="block text-xs font-semibold text-gray-700 mb-1">Nombre Completo</label>
+                            <input type="text" name="nombre1" required class="w-full px-3 py-2 rounded-lg border border-gray-200 focus:border-rose-500 focus:ring-1 focus:ring-rose-200 bg-white">
+                        </div>
+                        <div class="grid grid-cols-2 gap-3">
+                            <div>
+                                <label class="block text-xs font-semibold text-gray-700 mb-1">ID / Pasaporte</label>
+                                <input type="text" name="doc1" required class="w-full px-3 py-2 rounded-lg border border-gray-200 focus:border-rose-500 focus:ring-1 focus:ring-rose-200 bg-white">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-semibold text-gray-700 mb-1">Nacionalidad</label>
+                                <input type="text" name="nacionalidad1" required class="w-full px-3 py-2 rounded-lg border border-gray-200 focus:border-rose-500 focus:ring-1 focus:ring-rose-200 bg-white">
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold text-gray-700 mb-1">Email</label>
+                            <input type="email" name="email" required class="w-full px-3 py-2 rounded-lg border border-gray-200 focus:border-rose-500 focus:ring-1 focus:ring-rose-200 bg-white" placeholder="Recibirás confirmación aquí">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- SECCIÓN: TOGGLE SEGUNDO HUÉSPED -->
+                <div class="flex items-center justify-between bg-white border border-gray-200 p-3 rounded-lg shadow-sm">
+                    <div class="flex items-center">
+                        <span class="text-sm font-medium text-gray-700">Registrar acompañante</span>
+                    </div>
+                    <label class="relative inline-flex items-center cursor-pointer">
+                        <input type="checkbox" id="toggleGuest2" class="sr-only peer">
+                        <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-rose-500"></div>
+                    </label>
+                </div>
+
+                <!-- SECCIÓN: FORMULARIO SEGUNDO HUÉSPED -->
+                <div id="guest2Section" class="accordion-content bg-rose-50 rounded-xl border border-rose-100 overflow-hidden">
+                    <div class="p-4">
+                        <h3 class="text-xs font-bold text-rose-400 uppercase tracking-widest mb-3 flex items-center">
+                            Segundo Huésped
+                        </h3>
+                        <div class="space-y-3">
+                            <div>
+                                <label class="block text-xs font-semibold text-gray-700 mb-1">Nombre Completo</label>
+                                <input type="text" name="nombre2" id="inputNombre2" class="w-full px-3 py-2 rounded-lg border border-rose-200 focus:border-rose-500 focus:ring-1 focus:ring-rose-200 bg-white">
+                            </div>
+                            <div class="grid grid-cols-2 gap-3">
+                                <div>
+                                    <label class="block text-xs font-semibold text-gray-700 mb-1">ID / Pasaporte</label>
+                                    <input type="text" name="doc2" id="inputDoc2" class="w-full px-3 py-2 rounded-lg border border-rose-200 focus:border-rose-500 focus:ring-1 focus:ring-rose-200 bg-white">
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-semibold text-gray-700 mb-1">Nacionalidad</label>
+                                    <input type="text" name="nacionalidad2" id="inputNac2" class="w-full px-3 py-2 rounded-lg border border-rose-200 focus:border-rose-500 focus:ring-1 focus:ring-rose-200 bg-white">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- SECCIÓN: DETALLES DE LLEGADA -->
+                <div class="pt-2 border-t border-gray-100">
+                    <label class="block text-xs font-semibold text-gray-700 uppercase tracking-wider mb-2">Detalles de Llegada</label>
+                    <div class="grid grid-cols-2 gap-3">
+                        <input type="date" name="fecha_llegada" required class="w-full px-3 py-2 rounded-lg border border-gray-200 focus:border-rose-500 outline-none bg-gray-50 text-sm">
+                        <input type="time" name="hora_llegada" required class="w-full px-3 py-2 rounded-lg border border-gray-200 focus:border-rose-500 outline-none bg-gray-50 text-sm">
+                    </div>
+                </div>
+
+                <div class="pt-4">
+                    <button type="submit" id="btnSubmit" class="w-full bg-gray-900 hover:bg-gray-800 text-white font-medium py-4 rounded-xl shadow-lg transform active:scale-95 transition-all flex items-center justify-center">
+                        <span>Confirmar Check-in</span>
+                        <svg class="w-5 h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
+                    </button>
+                    <p class="text-center text-xs text-gray-400 mt-4">Tus datos serán enviados de forma segura.</p>
+                </div>
+            </form>
+        </div>
+
+        <!-- PANTALLA 2: ÉXITO -->
+        <div id="screen-success" class="hidden absolute inset-0 bg-white p-8 flex-col items-center justify-center text-center fade-in">
+            <div class="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mb-6 animate-bounce">
+                <svg class="w-10 h-10 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+            </div>
+            
+            <h2 class="text-3xl font-bold text-gray-900 mb-2">¡Todo listo!</h2>
+            <p class="text-gray-600 mb-6 text-sm">
+                Hemos recibido tus datos y enviado un <strong>correo de respaldo</strong> a tu email con toda la información.
+            </p>
+
+            <div class="bg-gray-50 border border-dashed border-gray-300 rounded-xl p-6 w-full mb-8 relative group cursor-pointer hover:bg-gray-100 transition-colors" onclick="copiarWifi()">
+                <p class="text-xs text-gray-400 uppercase tracking-widest mb-1">WiFi Network</p>
+                <h3 class="text-lg font-bold text-gray-800">Serrano_Guest_5G</h3>
+                <p class="text-xs text-gray-400 uppercase tracking-widest mt-3 mb-1">Password</p>
+                <h3 class="text-lg font-mono text-gray-800">Santiago2024*</h3>
+                <div id="toast" class="absolute inset-0 bg-gray-900 bg-opacity-90 flex items-center justify-center text-white text-sm font-medium rounded-xl opacity-0 transition-opacity duration-300 pointer-events-none">
+                    ¡Copiado!
+                </div>
+            </div>
+
+            <button class="w-full bg-rose-500 hover:bg-rose-600 text-white font-medium py-4 rounded-xl shadow-lg shadow-rose-200 transform active:scale-95 transition-all flex items-center justify-center">
+                <span>Ver Guía de la Casa</span>
+            </button>
+        </div>
+    </div>
+
+    <script>
+        // --- CONFIGURACIÓN PRINCIPAL ---
+        // Pega aquí la URL que obtuviste al publicar tu Google Apps Script
+        const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzw9xVvtXFQuSOxpdwL_lbUZZMeUlwkS9zE6HN3OV8z8RWwBWY7wuVKrw1XVTZutcKjaA/exec'; 
+
+        // --- REFERENCIAS DOM ---
+        const ui = {
+            toggleGuest2: document.getElementById('toggleGuest2'),
+            guest2Section: document.getElementById('guest2Section'),
+            inputsGuest2: [
+                document.getElementById('inputNombre2'),
+                document.getElementById('inputDoc2'),
+                document.getElementById('inputNac2')
+            ],
+            form: document.getElementById('checkinForm'),
+            btnSubmit: document.getElementById('btnSubmit'),
+            screenForm: document.getElementById('screen-form'),
+            screenSuccess: document.getElementById('screen-success'),
+            toast: document.getElementById('toast')
+        };
+
+        // --- MANEJO DE SEGUNDO HUÉSPED ---
+        ui.toggleGuest2.addEventListener('change', function() {
+            if (this.checked) {
+                ui.guest2Section.classList.add('active');
+                ui.inputsGuest2.forEach(input => input.setAttribute('required', 'true'));
+            } else {
+                ui.guest2Section.classList.remove('active');
+                ui.inputsGuest2.forEach(input => { 
+                    input.removeAttribute('required'); 
+                    input.value = ''; 
+                });
+            }
+        });
+
+        // --- ENVÍO DEL FORMULARIO ---
+        ui.form.addEventListener('submit', (e) => {
+            e.preventDefault();
+            
+            // 1. Activar estado de carga
+            setLoadingState(true);
+
+            const formData = new FormData(ui.form);
+            const data = Object.fromEntries(formData.entries());
+
+            fetch(SCRIPT_URL, {
+                method: 'POST',
+                // IMPORTANTE: 'no-cors' envía los datos pero no espera respuesta legible.
+                // Es la forma más estable de conectar formularios simples con Google Scripts.
+                mode: 'no-cors',
+                headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                body: JSON.stringify(data)
+            })
+            .then(() => {
+                // Al usar no-cors, si el código llega aquí significa que se envió.
+                // Asumimos éxito y mostramos la pantalla.
+                showSuccessScreen();
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Hubo un error de conexión. Intenta nuevamente.');
+                setLoadingState(false);
+            });
+        });
+
+        // --- UTILIDADES ---
+        function setLoadingState(isLoading) {
+            if (isLoading) {
+                ui.btnSubmit.disabled = true;
+                // Agregamos opacidad al formulario para feedback visual
+                ui.form.classList.add('loading-overlay');
+                ui.btnSubmit.innerHTML = `
+                    <svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-white inline-block" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg> Procesando...`;
+                ui.btnSubmit.classList.add('cursor-not-allowed', 'opacity-75');
+            } else {
+                ui.btnSubmit.disabled = false;
+                ui.form.classList.remove('loading-overlay');
+                ui.btnSubmit.innerHTML = 'Confirmar Check-in';
+                ui.btnSubmit.classList.remove('cursor-not-allowed', 'opacity-75');
+            }
+        }
+
+        function showSuccessScreen() {
+            ui.screenForm.classList.add('hidden');
+            ui.screenSuccess.classList.remove('hidden');
+            ui.screenSuccess.style.display = 'flex';
+        }
+
+        function copiarWifi() {
+            navigator.clipboard.writeText('Santiago2024*').then(() => {
+                showToast();
+            }).catch(err => {
+                showToast();
+            });
+        }
+
+        function showToast() {
+            ui.toast.style.opacity = '1';
+            setTimeout(() => { ui.toast.style.opacity = '0'; }, 2000);
+        }
+    </script>
+</body>
+</html>
