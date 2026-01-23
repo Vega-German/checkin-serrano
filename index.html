@@ -114,15 +114,11 @@
                 <div class="pt-2 border-t border-gray-100">
                     <label class="block text-xs font-semibold text-gray-700 uppercase tracking-wider mb-2">Detalles de Llegada</label>
                     <div class="grid grid-cols-2 gap-3">
-                        <!-- TRUCO: type="text" con onfocus para mostrar placeholder en móviles -->
-                        <input type="text" name="fecha_llegada" placeholder="Fecha Llegada" 
-                               onfocus="(this.type='date')" 
-                               onblur="(this.value ? this.type='date' : this.type='text')"
+                        <!-- FIX: Quitamos los onfocus/onblur inline para manejarlos robustamente en JS -->
+                        <input type="text" name="fecha_llegada" id="inputFecha" placeholder="Fecha Llegada" 
                                required class="w-full px-3 py-2 rounded-lg border border-gray-200 focus:border-rose-500 outline-none bg-gray-50 text-sm">
                         
-                        <input type="text" name="hora_llegada" placeholder="Hora Aprox." 
-                               onfocus="(this.type='time')" 
-                               onblur="(this.value ? this.type='time' : this.type='text')"
+                        <input type="text" name="hora_llegada" id="inputHora" placeholder="Hora Aprox." 
                                required class="w-full px-3 py-2 rounded-lg border border-gray-200 focus:border-rose-500 outline-none bg-gray-50 text-sm">
                     </div>
                 </div>
@@ -137,7 +133,7 @@
             </form>
         </div>
 
-       <!-- PANTALLA 2: ÉXITO (Corregida para que no colapse) -->
+        <!-- PANTALLA 2: ÉXITO -->
         <div id="screen-success" class="hidden bg-white p-8 flex-col items-center justify-center text-center fade-in w-full">
             <div class="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mb-6 animate-bounce">
                 <svg class="w-10 h-10 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
@@ -166,18 +162,7 @@
 
     <script>
         // --- CONFIGURACIÓN PRINCIPAL ---
-        // Pega aquí la URL que obtuviste al publicar tu Google Apps Script
         const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzw9xVvtXFQuSOxpdwL_lbUZZMeUlwkS9zE6HN3OV8z8RWwBWY7wuVKrw1XVTZutcKjaA/exec';
-
-        // --- VALIDACIÓN DE FECHA MÍNIMA (NUEVO) ---
-        // Evita que el usuario seleccione fechas anteriores a "hoy"
-        document.addEventListener('DOMContentLoaded', () => {
-            const fechaInput = document.querySelector('input[name="fecha_llegada"]');
-            if (fechaInput) {
-                const hoy = new Date().toISOString().split("T")[0]; // Fecha formato YYYY-MM-DD
-                fechaInput.setAttribute("min", hoy);
-            }
-        });
 
         // --- REFERENCIAS DOM ---
         const ui = {
@@ -192,8 +177,57 @@
             btnSubmit: document.getElementById('btnSubmit'),
             screenForm: document.getElementById('screen-form'),
             screenSuccess: document.getElementById('screen-success'),
-            toast: document.getElementById('toast')
+            toast: document.getElementById('toast'),
+            inputFecha: document.getElementById('inputFecha'),
+            inputHora: document.getElementById('inputHora')
         };
+
+        // --- LÓGICA ROBUSTA PARA INPUTS DE FECHA/HORA (IOS FIX) ---
+        // Maneja la transformación de Text a Date/Time y la restricción de fecha mínima
+        document.addEventListener('DOMContentLoaded', () => {
+            
+            // 1. Calcular fecha de HOY en formato YYYY-MM-DD (Local time, no UTC)
+            const now = new Date();
+            const year = now.getFullYear();
+            const month = String(now.getMonth() + 1).padStart(2, '0');
+            const day = String(now.getDate()).padStart(2, '0');
+            const todayStr = `${year}-${month}-${day}`;
+
+            // 2. Función para activar el modo fecha/hora y forzar validación
+            const activateInput = (input, type, minVal = null) => {
+                input.type = type;
+                if (minVal) {
+                    // Forzamos el atributo min inmediatamente después de cambiar el tipo
+                    // Esto ayuda a que iOS reconozca la restricción al abrir el picker
+                    input.setAttribute('min', minVal);
+                }
+            };
+
+            // 3. Función para desactivar (volver a placeholder) si está vacío
+            const deactivateInput = (input) => {
+                if (!input.value) {
+                    input.type = 'text';
+                }
+            };
+
+            // 4. Configurar Input Fecha
+            if (ui.inputFecha) {
+                // Evento focus (Click en PC / Touch inicial)
+                ui.inputFecha.addEventListener('focus', () => activateInput(ui.inputFecha, 'date', todayStr));
+                // Evento touchstart (Específico para móviles iOS para adelantarse al teclado)
+                ui.inputFecha.addEventListener('touchstart', () => activateInput(ui.inputFecha, 'date', todayStr));
+                // Evento blur (Al salir)
+                ui.inputFecha.addEventListener('blur', () => deactivateInput(ui.inputFecha));
+            }
+
+            // 5. Configurar Input Hora (Misma lógica visual)
+            if (ui.inputHora) {
+                ui.inputHora.addEventListener('focus', () => activateInput(ui.inputHora, 'time'));
+                ui.inputHora.addEventListener('touchstart', () => activateInput(ui.inputHora, 'time'));
+                ui.inputHora.addEventListener('blur', () => deactivateInput(ui.inputHora));
+            }
+        });
+
 
         // --- MANEJO DE SEGUNDO HUÉSPED ---
         ui.toggleGuest2.addEventListener('change', function() {
@@ -212,8 +246,6 @@
         // --- ENVÍO DEL FORMULARIO ---
         ui.form.addEventListener('submit', (e) => {
             e.preventDefault();
-            
-            // 1. Activar estado de carga
             setLoadingState(true);
 
             const formData = new FormData(ui.form);
@@ -226,8 +258,6 @@
                 body: JSON.stringify(data)
             })
             .then(() => {
-                // Al usar no-cors, si el código llega aquí significa que se envió.
-                // Asumimos éxito y mostramos la pantalla.
                 showSuccessScreen();
             })
             .catch(error => {
@@ -241,7 +271,6 @@
         function setLoadingState(isLoading) {
             if (isLoading) {
                 ui.btnSubmit.disabled = true;
-                // Agregamos opacidad al formulario para feedback visual
                 ui.form.classList.add('loading-overlay');
                 ui.btnSubmit.innerHTML = `
                     <svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-white inline-block" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
